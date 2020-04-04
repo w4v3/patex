@@ -1,0 +1,39 @@
+% pdf generation support
+\message{Setting up pdfTeX}
+
+% check if called with pdf* \jobname, otherwise return
+\def\tmpa#1#2#3#4\relax{\def\tmpa{#1#2#3}}\expandafter\tmpa\jobname\relax
+\def\tmpb{pdf} \edef\tmpa{\meaning\tmpa} \edef\tmpb{\meaning\tmpb}
+\ifx\tmpa\tmpb %% PDFTeX with PDF output, \jobname starts by "pdf":
+  \message{output: pdf}
+\else
+  \message{output: dvi}
+  \pdfoutput=0
+  \endinput
+\fi
+\let\tmpa=\undefined \let\tmpb=\undefined
+
+% settings normally in pdfconfig.tex
+
+\pdfoutput=1
+
+% Paper size: dimensions given in absolute terms
+\pdfpageheight       = 297 true mm
+\pdfpagewidth        = 210 true mm
+
+% Enable PDF 1.5 output and thus more compression
+\pdfminorversion     = 5
+\pdfobjcompresslevel = 2
+
+% Low-level settings unlikely ever to need to change
+\pdfcompresslevel    = 9
+\pdfdecimaldigits    = 3
+\pdfpkresolution     = 600
+\pdfhorigin          = 1 true in
+\pdfvorigin          = 1 true in
+
+\input pdftexmagfix % fixes pdf page size settings when used with TeX's \mag command
+
+% comptability
+\pdfinterwordspaceon % inserts fake spaces into pdf, making it possible to copy content
+\pdfgentounicode=1 % enables searching for ligatures

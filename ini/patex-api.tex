@@ -1,0 +1,177 @@
+% macro programming tools
+\message{Macro programming tools}
+\catcode`@=11
+
+%% catcode changes
+\def\dospecials{\do\\\do\{\do\}\do\$\do\&\do\#\do\^\do\_\do\%\do\~}
+\def\doallchars{\count@=0 \loop\ifnum\count@<"100\relax\do{\count@} \advance\count@ by1\relax\repeat}
+
+\def\rootme{\catcode`@=11\relax}
+\def\unrootme{\catcode`@=12\relax}
+
+% verbatim mode: \verbatim ... \endverbatim for multiline, line and space obeying code, \verb|...| for inline code
+{\catcode`\ =13%
+\gdef\verbatim{\begingroup\tt\def\makeoneinnocent##1{\catcode##1=12}\let\do\makeoneinnocent\doallchars\catcode`\^^M=12\catcode`\ =13\let =\space\@verbatim}%
+}
+{\catcode`\^^M=12%
+\gdef\@verbatim#1^^M{\def\test{#1}\ifx\test\endverbatim\let\next\endgroup\else#1\par\unhbox\voidb@x\let\next\@verbatim\fi\next}%
+}
+{\escapechar=-1 \xdef\endverbatim{\string\\\string e\string n\string d\string v\string e\string r\string b\string a\string t\string i\string m}}
+\def\verb{\begingroup\tt\def\makeoneinnocent##1{\catcode`##1=12}\let\do\makeoneinnocent\dospecials\@verb}
+\long\def\@verb|#1|{#1\endgroup}
+
+% storing and restoring catcodes
+\def\storecat#1{\chardef\escp=\escapechar \escapechar=-1
+  \csedef{restorecat\string#1}{\catcode`\string#1=\the\catcode\expandafter`\string#1}%
+  \catcode\expandafter`\string#1=12\relax
+  \escapechar=\escp}
+\def\restorecat#1{\chardef\escp=\escapechar \escapechar=-1
+  \csnm{restorecat\string#1}
+  \escapechar=\escp}
+
+%% basics
+\def\empty{}
+\def\space{ }
+
+\let\bgroup={
+\let\egroup=}
+
+%% conditionals
+\outer\def\newif#1{%
+  \count@\escapechar \escapechar\m@ne
+  \expandafter\expandafter\expandafter
+  \def\@if#1{true}{\let#1=\iftrue}%
+  \expandafter\expandafter\expandafter
+  \def\@if#1{false}{\let#1=\iffalse}%
+  \@if#1{false}\escapechar\count@%
+}
+\def\@if#1#2{\csname\expandafter\if@\string#1#2\endcsname} % expands to \nametrue/namefalse
+{\uccode`1=`i \uccode`2=`f \uppercase{\gdef\if@12{}}} % require starting with `if'
+
+%% loops
+\def\loop#1\repeat{\def\body{#1}\iterate}
+\def\iterate{\body \let\next\iterate \else\let\next\relax\fi \next}
+\let\repeat=\fi
+
+%% macro definition
+
+% define control sequence by name
+\def\csdef#1{\expandafter\def\csname#1\endcsname}
+\def\csgdef#1{\expandafter\gdef\csname#1\endcsname}
+\def\csedef#1{\expandafter\edef\csname#1\endcsname}
+\def\csarg#1#2{\expandafter#1\csname#2\endcsname}
+\def\csnm#1{\csname#1\endcsname}
+
+% let with control sequence name
+\def\cslet#1#2{\expandafter\let\expandafter#1\csname#2\endcsname}
+
+% full expansion
+\def\Expandafter#1#2{\edef\@tmp{\noexpand#1#2}\@tmp}
+
+% macros with optional arguments
+\def\optdef#1[#2]{
+  \csdef{#1}{\def\maybeopt{\csnm{opt#1?}}\futurelet\test\maybeopt}
+  \csdef{opt#1?}{
+    \def\opt{\csnm{opt#1!}}
+    \def\noopt{\csnm{noopt#1!}}
+    \ifx\test[\let\next\opt
+    \else\let\next\noopt\fi\next}
+    \csdef{noopt#1!}{\csnm{opt#1!}[#2]}
+  \csdef{opt#1!}[##1]%
+}
+
+% unknown number of arguments: #1 cs name #2 left delimiter #3 separator #4 right delimiter #5 expression to be executed
+\def\varargdef#1#2#3#4#5{
+  \expandafter\def\csname vararg:#1\endcsname##1#3{\def\@arg{##1}\def\@end{@@@}\ifx\@arg\@end\else#5\expandafter\expandafter\csname vararg:#1\endcsname\fi}
+  \expandafter\def\csname#1\endcsname#2##1#4{\csname vararg:#1\endcsname##1#3@@@#3}
+}
+
+% macro whose argument is delimited by the line end
+{\catcode`\^^M=12%
+\gdef\eoldef#1#2{%
+    \csgdef{#1}{\begingroup\catcode`\^^M=12 \csnm{eol:#1}}%
+    \csgdef{eol:#1}##1^^M{#2\endgroup}%
+}}
+
+% optional {} parameter
+% italic correction character
+
+%% utilities
+%
+%% show token list with catcodes
+%\newtoks\innocent
+%\newtoks\guilty
+%
+%%\long\def\writeinnocenttotmp{\openout\wtmp=mytemp.tmp \newlinechar=`\^^M\write\wtmp{\string\@absorbguilty|\the\innocent|}\par\vfil\penalty-10000\immediate\closeout\wtmp}
+%\long\def\duplicate|#1|{|#1||#1|}
+%\def\makeinnocent{\def\do##1{\catcode##1=12}\doallchars}
+%
+%\long\def\@gobbleandprint#1#2.{{#2}\ifx#1\undefined\@printmac#1\else\if\noexpand#1\relax\@printmac#1\else$\hbox{\font\f=cmtt10\f\string#1}_{\hbox{\font\f=cmtt10 at7pt\f\the\catcode`#1}}$\fi\fi\hskip1em minus1em}
+%
+%\long\def\@printmac#1{\leavevmode{\escapechar=-1 \font\f=cmtt10\f \setbox0\hbox{fg} \lower1.4\dp0\vbox{\hrule\vfil\hbox{\vrule height 1.3\ht0 depth 1.3\dp0 \hskip3pt\string#1\hskip3pt\vrule height 1.3\ht0 depth 1.3\dp0}\vfil\hrule}}}
+%
+%\def\printtokenlist#1{\edef\@toks{\the#1}\ifx\@toks\empty\else\expandafter#1\expandafter\@gobbleandprint\the#1.\printtokenlist#1\fi}
+%
+%\def\printtokenlistinitial{\absorbinnocent\printtokenlist\innocent}
+%
+%\long\def\printtokenlistfinal|#1|{\absorbguilty|#1|\printtokenlist\guilty}
+%
+%\def\absorbinnocent#1{\begingroup\makeinnocent\@absorbinnocent#1}
+%\long\def\@absorbinnocent#1|#2|{\global\innocent={#2}\endgroup#1}
+%\long\def\absorbguilty|#1|{\guilty={#1}}
+%\long\def\absorbboth|#1|{\absorbguilty|#1|\absorbinnocent{}}
+%
+%
+%\def\printtokenlistsuccession|#1{\noindent\printtokenlistfinal|#1|\ifx#1|\else\begingroup\makeinnocent\expandafter\@printinsuccession\fi}
+%\long\def\@printinsuccession#1|{\global\innocent={#1}\endgroup\printtokenlist\innocent \vskip10pt \printtokenlistsuccession|#1}
+%
+%\long\def\scaninnocent|#1|{{\makeinnocent\endlinechar-1\everyeof{\noexpand}\long\edef\tmp{\scantokens{#1}}\global\innocent\expandafter{\tmp}}}
+%
+%\newtoks\guiltysofar
+%\long\def\printinsuccession|#1|{\noindent\scaninnocent|#1|\printtokenlist\innocent\vskip10pt\@printinsuccession|#1|}
+%\long\def\@printinsuccession|#1#2|{\noindent\global\guiltysofar=\expandafter{\the\guiltysofar #1}\guilty=\guiltysofar \printtokenlist\guilty\scaninnocent|#2|\printtokenlist\innocent%
+%  \ifx#2\empty\else\vskip10pt\@printinsuccession|#2|\fi}
+%
+%%\long\def\@printinnocent|#1|{\global\innocent={#1}\endgroup\printtokenlist\innocent}
+%%\def\printtokenlist{\begingroup\def\do##1{\catcode##1=12}\doallchars\@printtokenlist}
+%%\long\def\printfinaltokenlist|#1|{\global\toks1={#1} \@@printtokenlist}
+%%\def\printinsuccession|#1{\noindent\global\toks1={#1} \@@printtokenlist\begingroup\def\do##1{\catcode##1=12}\doallchars\@printinsuccession}
+%%\long\def\@printinsuccession#1|{\@printtokenlist|#1| \vskip10pt \noindent\ifx\relax#1\relax\else\printinsuccession|#2|\fi}
+%%\long\def\@printtokenlist|#1|{\global\toks1={#1}\endgroup\@@printtokenlist}
+%%\def\@@printtokenlist{\edef\@toks{\the\toks1}\ifx\@toks\empty\else\expandafter\toks1\expandafter\@gobbleandprint\the\toks1.\@@printtokenlist\fi}
+%
+%% expander
+%\newtoks\current
+%\newtoks\pastsave
+%\newtoks\past
+%\newif\ifexpandfurther \expandfurthertrue
+%\def\expand#1#2{\edef\t@ks{\the#1} \printtokenlist#1 \ifnum\n<#2 #1=\expandafter\expandafter\expandafter{\t@ks} \advance\n by1 \vskip10pt\expand#1{#2}\fi}
+%\def\expand|#1#2|{\edef\arg{#2}\edef\expanded{#1}\if\noexpand#1\expanded\pastsave=\expandafter{\the\pastsave#1}\current={#2}\ifx\empty\arg\expandfurtherfalse\fi\else\current={#1#2}\fi\edef\t@ks{\the\current} \past=\pastsave\printtokenlist\past \printtokenlist\current \ifexpandfurther\current=\expandafter\expandafter\expandafter{\t@ks} \vskip10pt\expandafter\expand\expandafter|\the\current|\fi}
+% box and glue visualizer (box, line, paragraph, page)
+% parameters
+% character tables
+  
+
+% dec to hex
+\def\hex#1{{\countdef\@n=4 \@n=#1 \@hex}}
+\def\@hex{{\count0=\@n \divide\@n by"10
+    \ifnum\@n>0 \@hex\fi \count2=\@n \multiply\count2 by-"10
+    \advance\count0 by\count2 \hexdigit}}
+\def\hexdigit{\ifnum\count0<"A \number\count0
+  \else\advance\count0 by-"A \advance\count0 by`a \char\count0 \fi}
+
+% error tools
+\def\tracingall{\tracingonline\@ne\tracingcommands\tw@\tracingstats\tw@
+  \tracingpages\@ne\tracingoutput\@ne\tracinglostchars\@ne
+  \tracingmacros\tw@\tracingparagraphs\@ne\tracingrestores\@ne
+  \showboxbreadth\maxdimen\showboxdepth\maxdimen}
+
+\def\p@error#1#2{\errhelp{#2}\errmessage{PaTeX error: #1}}
+
+% engine detection
+\def\ifnoe{\ifx\eTeXversion\undefined}
+\def\ifnopdf{\ifx\pdftexversion\undefined}
+\def\ifnoxe{\ifx\XeTeXuseglyphmetrics\undefined}
+\def\ifnolua{\ifx\directlua\undefined}
+
+\catcode`@=12

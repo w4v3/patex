@@ -1,0 +1,33 @@
+#!/bin/bash
+echo tex -fmt=patex \"\$@\" > virpatex
+ln -sf  /usr/bin/etex epatex
+ln -sf  /usr/bin/pdftex pdfpatex
+ln -sf  /usr/bin/xetex xepatex
+ln -sf  /usr/bin/luatex luapatex
+echo "#!/bin/bash"                          > patex
+echo "read -r line < \$1"                  >> patex
+echo "if [ \$line = \"%\\english\" ]; then"  >> patex
+echo "  echo PaTeX mode: \\\\english"      >> patex
+echo "  echo invoking TeX"                 >> patex
+echo "  virpatex \"\$@\""                  >> patex
+echo "elif [ \$line = \"%\\europe\" ]; then" >> patex
+echo "  echo PaTeX mode: \\\\europe"       >> patex
+echo "  echo invoking pdfTeX"              >> patex
+echo "  pdfpatex \"\$@\""                  >> patex
+echo "elif [ \$line = \"%\\world\" ]; then"  >> patex
+echo "  echo PaTeX mode: \\\\world"        >> patex
+echo "  echo invoking XeTeX"               >> patex
+echo "  xepatex \"\$@\""                   >> patex
+echo "else"                                >> patex
+echo "  echo PaTeX no mode specified"      >> patex
+echo "  echo invoking TeX"                 >> patex
+echo "  virpatex \"\$@\""                  >> patex
+echo "fi"                                  >> patex
+ln -sf ~/texmf/tex/patex/bin/virpatex ~/bin/virpatex
+ln -sf ~/texmf/tex/patex/bin/epatex   ~/bin/epatex
+ln -sf ~/texmf/tex/patex/bin/pdfpatex ~/bin/pdfpatex
+ln -sf ~/texmf/tex/patex/bin/xepatex  ~/bin/xepatex
+ln -sf ~/texmf/tex/patex/bin/luapatex ~/bin/luapatex
+ln -sf ~/texmf/tex/patex/bin/patex    ~/bin/patex
+chmod +x virpatex
+chmod +x patex

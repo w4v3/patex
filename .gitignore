@@ -1,0 +1,6 @@
+**/*test*
+**/*.log
+**/*.pdf
+**/*.dvi
+clean
+bin/*tex

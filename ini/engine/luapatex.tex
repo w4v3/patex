@@ -1,0 +1,89 @@
+\message{Setting up LuaTeX}
+% like luatex.ini
+
+% from luatexconfig.tex
+\begingroup
+  % Settings that were primitives
+  % accessed in newer LuaTeX releases via \pdfvariable
+  \def\list{%
+      {compresslevel}%
+      {decimaldigits}%
+      {horigin}%
+      {minorversion}%
+      {objcompresslevel}%
+      {pkresolution}%
+      {vorigin}%
+  }%
+  \def\do#1{%
+    \ifx\relax#1\else
+      \directlua{tex.enableprimitives("", {"pdf#1"})}%
+      \expandafter\do
+    \fi
+  }%
+  % Enable all \pdf... primitives in one go
+  \expandafter\do\list{output}{pageheight}{pagewidth}{variable}\relax
+  % Other required primitives that are not named \pdf...
+  \directlua{tex.enableprimitives("",
+    {"pageheight", "pagewidth", "outputmode"})}%
+  % Newer LuaTeX releases don't have \pdfoutput, etc.:
+  % emulate names where appropriate
+  \ifx\pdfoutput\undefined
+    \global\let\pdfoutput\outputmode
+    \global\let\pdfpageheight\pageheight
+    \global\let\pdfpagewidth\pagewidth
+    \def\do#1{%
+      \ifx\relax#1\else
+        \expandafter\xdef\csname pdf#1\endcsname{\pdfvariable #1}%
+        \expandafter\do
+      \fi
+    }%
+    \expandafter\do\list\relax
+  \fi
+  % The file pdftexconfig.tex contains only <primitive> = <value> lines
+  % so can now be read using the (emulated) primitives
+  % This needs to be global so set \globaldefs for this step
+  \globaldefs=1 %
+  %% PaTeX: inserting pdftexconfig settings directly
+  \pdfoutput           = 1
+  \pdfpageheight       = 297 true mm
+  \pdfpagewidth        = 210 true mm
+  \pdfminorversion     = 5
+  \pdfobjcompresslevel = 2
+  \pdfcompresslevel    = 9
+  \pdfdecimaldigits    = 3
+  \pdfpkresolution     = 600
+  \pdfhorigin          = 1 true in
+  \pdfvorigin          = 1 true in
+  \globaldefs=0 %
+  % Pick up on a request for DVI mode and apply it whilst \pdfoutput is
+  % still defined
+  \ifx\dvimode\relax
+    \global\pdfoutput=0 %
+  \fi
+  \global\let\dvimode\undefined
+  % Clean up all of the globally-allocated names
+  \def\do#1{%
+    \ifx\relax#1\else
+      \global\expandafter\let\csname pdf#1\endcsname\undefined
+      \expandafter\do
+    \fi
+  }%
+  \expandafter\do\list{output}{pageheight}{pagewidth}{variable}\relax
+  \global\let\outputmode\undefined
+  \global\let\pageheight\undefined
+  \global\let\pagewidth\undefined
+  \global\let\dvimode\undefined
+\endgroup
+
+% from luatexiniconfig.tex
+\directlua{
+  % enable all primitives without prefixing
+  tex.enableprimitives('', tex.extraprimitives())
+  %
+  % for compatibility with older LaTeX formats, also provide a
+  % prefixed version of some primitives.
+  tex.enableprimitives('luatex',
+    tex.extraprimitives('core', 'omega', 'aleph', 'luatex'))
+}
+
+\input load-unicode-data.tex

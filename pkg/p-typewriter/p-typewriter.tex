@@ -1,0 +1,143 @@
+% setting up the font
+\let\oldtt\tt % save the user's normal typewriter font
+\def\tt{\font\ttfont=ec-lmtk10\ttfont}
+\def\ß{\font\ttfont=ec-lmtcsc10\ttfont}
+\def\usemytt{\let\tt\oldtt\tt} % in case the normal font is to be used
+\tt
+
+% measure some font dimensions
+\newdimen\letterwd
+\newdimen\letterht
+\newdimen\letterdp
+\newdimen\spacewd
+\newdimen\emsize % should be 2x \letterwd
+\setbox0 \hbox{f}
+\letterwd=\wd0
+\letterht=\ht0
+\setbox0 \hbox{g}
+\letterdp=\dp0
+\spacewd=\fontdimen2\font
+\emsize=\fontdimen6\font
+
+% character manipulation
+\catcode`\_=12 % make underscore character
+{\catcode`1="D \let1l % no 1 or 0
+\catcode`0="D \let0O
+\gdef\removezeroandone{\catcode`1="D \let1l \catcode`0="D \let0O}}
+
+% formatting
+% obey lines
+{\catcode`\^^M=13 \gdef\obeylines{\catcode`\^^M=13 \def^^M{\leavevmode\par}}}
+
+% half skip and backskip
+\def\,{\hskip.5\letterwd}
+\def\?{\hskip-.5\letterwd}
+\def\!{\hskip-\letterwd}
+
+% fixed glue everywhere
+\baselineskip=12pt
+\lineskip=0pt
+\lineskiplimit=-\maxdimen
+\parindent=10\letterwd
+\spaceskip=\letterwd
+\xspaceskip=2\letterwd
+\rightskip0pt plus1fil % ragged right
+\let\\\noindent
+
+% double space after sentence only
+\sfcode`\)=1000 \sfcode`\'=1000 \sfcode`\]=1000
+\sfcode`\,=1000 \sfcode`\:=1000 \sfcode`\;=1000
+\sfcode`\.=3000 \sfcode`\?=3000 \sfcode`\!=3000
+
+% letter spacing
+\def\~#1{{\letterspacefont\lsfont\ttfont 500 \lsfont #1}}
+
+% type over/underline with underscores
+\def\&#1#2{\setbox0=\hbox{#1}\edef\charnum{\the\numexpr \wd0 / \letterwd\relax}\leavevmode\hbox{\box0 \count255=\charnum \loop\ifnum\count255>0 \!\advance\count255 by-1\repeat\count255=\charnum \count255=\charnum \loop\ifnum\count255>0 #2\advance\count255 by-1\repeat}}
+\def\_#1{\&{#1}_}
+\def\=#1{\&{#1}-}
+
+% the fun part
+\def\doallchars{\count255=0 \loop\ifnum\count255<"100\relax\do{\count255} \advance\count255 by1\relax\repeat}
+\def\makeinnocent{\def\do##1{\catcode##1=12}\doallchars}
+\newread\rand
+\def\getrandom{{%
+  \makeinnocent
+  \openin\rand=/dev/random
+  \global\read\rand to\var
+  \closein\rand
+  \reset
+}}
+\def\nextrand{\expandafter\conv\var\stop}
+\newdimen\offset
+\long\def\conv#1#2\stop{`#1mm}
+\def\reset{\expandafter\rreset\var\stop}
+\long\def\rreset#1#2\stop{\ifnum`#1=`\^^M \getrandom\else\def\var{#2}\global\offset=`#1ex \global\advance\offset by-128ex \global\divide\offset by1500\relax\fi}
+\getrandom
+
+%\errmessage{\the\numexpr\dimexpr 128ex\relax/1500\relax}
+
+\newif\ifmadness\madnesstrue \let\*\madnessfalse 
+\def\modifychar#1{\edef\vrand{\the\offset}\reset\edef\hrand{\the\offset}\reset\catcode`#1=13 \begingroup\lccode`~=`#1 \lowercase{\endgroup\edef~}{\noexpand\ifmadness\leavevmode\raise\vrand\hbox{\pdfliteral{\noexpand\brand}\kern\hrand\noexpand\dorareevent#1\pdfliteral{0Tr 0G 0w}}\noexpand\reset\noexpand\else#1\noexpand\fi}}
+\def\thebnum{\the\numexpr\dimexpr\offset\relax*4/1000\relax}
+\def\brand{2Tr \ifnum\offset<0 \ifnum\thebnum>-4 1G .\thebnum\else .0\thebnum\fi\else\ifnum\offset>0 \ifnum\thebnum<4 0G .\thebnum\else .0\thebnum\fi\else .0\fi\fi w}
+\def\dorareevent#1{\ifdim\offset>0.0846ex \pdfliteral{2Tr 0G .5w}#1\pdfliteral{2Tr 0G 0w}\else\ifdim\offset<-0.0853ex \?#1\?\else#1\fi\fi}
+
+\def\modifychars{%
+  \expandafter\let\expandafter\@\csname thx\endcsname % we want to be able to end the document still
+  \modifychar a
+  \modifychar b
+  \modifychar c
+  \modifychar d
+  \modifychar e
+  \modifychar f
+  \modifychar g
+  \modifychar h
+  \modifychar i
+  \modifychar j
+  \modifychar k
+  \modifychar l
+  \modifychar m
+  \modifychar n
+  \modifychar o
+  \modifychar p
+  \modifychar q
+  \modifychar r
+  \modifychar s
+  \modifychar t
+  \modifychar u
+  \modifychar v
+  \modifychar w
+  \modifychar x
+  \modifychar y
+  \modifychar z
+  \modifychar A
+  \modifychar B
+  \modifychar C
+  \modifychar D
+  \modifychar E
+  \modifychar F
+  \modifychar G
+  \modifychar H
+  \modifychar I
+  \modifychar J
+  \modifychar K
+  \modifychar L
+  \modifychar M
+  \modifychar N
+  \modifychar O
+  \modifychar P
+  \modifychar Q
+  \modifychar R
+  \modifychar S
+  \modifychar T
+  \modifychar U
+  \modifychar V
+  \modifychar W
+  \modifychar X
+  \modifychar Y
+  \modifychar Z
+}
+
+
+\obeylines \removezeroandone \modifychars%

@@ -1,0 +1,406 @@
+% this file manages the access to the characters of each font, either OT1, T1 or UTF-8 encoded
+% note: only UTF-8 encoded input is accepted
+\message{Font encoding}
+
+\outer\def\encode#1T1{\def\argi{#1}\ifx\argi\empty\encoding=2\else\encoding=1\fi\input patex-enc}
+
+\rootme
+
+%% things to do in every case
+
+% accessing the OT1 characters
+\def\`#1{{\accent18 #1}}
+\def\'#1{{\accent19 #1}}
+\def\v#1{{\accent20 #1}}
+\def\u#1{{\accent21 #1}}
+\def\=#1{{\accent22 #1}}
+\def\°#1{{\accent23 #1}}
+\def\^#1{{\accent94 #1}}
+\def\.#1{{\accent95 #1}}
+\def\H#1{{\accent"7D #1}}
+\def\~#1{{\accent"7E #1}}
+\def\"#1{{\accent"7F #1}}
+\def\t#1{{\edef\next{\the\font}\the\textfont1\accent"7F\next#1}}
+
+\chardef\%=`\%
+\chardef\&=`\&
+\chardef\#=`\#
+\chardef\$=`\$
+\chardef\ss="19
+\chardef\ae="1A
+\chardef\oe="1B
+\chardef\o="1C
+\chardef\AE="1D
+\chardef\OE="1E
+\chardef\O="1F
+\chardef\i="10 \chardef\j="11 % dotless letters
+\def\l{\char32l}
+\def\L{\unhbox\voidb@x\setbox0\hbox{L}\hbox to \wd0{\hss\char32L}}
+\def\SS{SS}
+
+\def\d#1{{\o@lign{\relax#1\crcr\hidewidth\sh@ft{-1ex}.\hidewidth}}} % underdot
+\def\b#1{{\o@lign{\relax#1\crcr\hidewidth\sh@ft{-3ex}% underbar
+    \vbox to.2ex{\hbox{\char22}\vss}\hidewidth}}}
+\def\c#1{{\setbox\z@\hbox{#1}\ifdim\ht\z@=1ex\accent24 #1%
+  \else\ooalign{\unhbox\z@\crcr\hidewidth\char24\hidewidth}\fi}}
+\def\copyright{{\ooalign{\hfil\raise.07ex\hbox{c}\hfil\crcr\Orb}}}
+
+\chardef\textasciicircum="5E % ^
+\chardef\textasciitilde="7E % ~
+\chardef\textbackslash="5C % \ \tt
+\chardef\textbar="7C % | \tt
+\chardef\textbraceleft="7B % { \tt
+\chardef\textbraceright="7D % } \tt
+\chardef\textdollar=`\$
+\chardef\textendash="7B % --
+\chardef\textemdash="7C % ---
+\chardef\textexclamdown="3C % ¡
+\chardef\textquestiondown="3E % ¿
+\chardef\textgreater="3C % > \tt
+\chardef\textless="3E % < \tt
+\chardef\textquotedblleft="5C % ``
+\chardef\textquotedblright="22 % ''
+\chardef\textquoteleft="60 % `
+\chardef\textquoteright="27 % '
+\def\textregistered{{\ooalign{\hfil\raise.07ex\hbox{\the\scriptfont0 R}\hfil\crcr\Orb}}}
+\def\texttrademark{{\raise.5ex\hbox{\the\scriptfont0 TM}}}
+\chardef\textunderscore=`\_ % \tt
+\chardef\textvisiblespace="20 %  ̷ , \tt: ␣
+
+%% END default \english and \world
+\ifnum\encoding=0 \endinput\fi
+
+%% UTF-8 to OT1
+
+\def\nosuchch@r#1{\errmessage{PaTeX-enc: unknown character #1.}}
+
+\def\de@ct#1{\catcode`#1=13 \begingroup\lccode`\~=`#1 \lowercase{\endgroup\def~{\nosuchch@r{\string#1}}}}
+
+% make upper chars 0xc0-0xff active and give error message by default (they introduce non-ASCII input)
+\de@ct^^c0 \de@ct^^c1 \de@ct^^c2 \de@ct^^c3 \de@ct^^c4 \de@ct^^c5 \de@ct^^c6 \de@ct^^c7 \de@ct^^c8 \de@ct^^c9 \de@ct^^ca \de@ct^^cb \de@ct^^cc \de@ct^^cd \de@ct^^ce \de@ct^^cf \de@ct^^d0 \de@ct^^d1 \de@ct^^d2 \de@ct^^d3 \de@ct^^d4 \de@ct^^d5 \de@ct^^d6 \de@ct^^d7 \de@ct^^d8 \de@ct^^d9 \de@ct^^da \de@ct^^db \de@ct^^dc \de@ct^^dd \de@ct^^de \de@ct^^df \de@ct^^e0 \de@ct^^e1 \de@ct^^e2 \de@ct^^e3 \de@ct^^e4 \de@ct^^e5 \de@ct^^e6 \de@ct^^e7 \de@ct^^e8 \de@ct^^e9 \de@ct^^ea \de@ct^^eb \de@ct^^ec \de@ct^^ed \de@ct^^ee \de@ct^^ef \de@ct^^f0 \de@ct^^f1 \de@ct^^f2 \de@ct^^f3 \de@ct^^f4 \de@ct^^f5 \de@ct^^f6 \de@ct^^f7 \de@ct^^f8 \de@ct^^f9 \de@ct^^fa \de@ct^^fb \de@ct^^fc \de@ct^^fd \de@ct^^fe \de@ct^^ff
+
+% new two byte mapping: #1 prefix #2 ^^char #3 "char CODE of char to insert
+\def\newutfenc#1:#2>#3#4{\expandafter\def\csname utf:#1:#2\endcsname{\char"#3#4\relax}}
+% new three byte mapping
+\def\newutfenctwo#1:#2#3>#4#5{\expandafter\def\csname utf:#1:#2#3\endcsname{\char"#4#5\relax}}
+% new two byte synonym: if the font doesn't have the char, do #1 prefix #2 ^^char #3 {synonym token}
+\def\newutfsyn#1:#2#3{\expandafter\def\csname utf:#1:#2\endcsname{#3\relax}}
+% each byte parses the next char and if a mapping exists, use it, otherwise give error message
+\def\d@fcsi#1#2{\expandafter\ifx\csname utf:#1:#2\endcsname\relax\nosuchch@r{#1#2}\else\csname utf:#1:#2\endcsname\fi}
+\def\d@fcsii#1#2#3{\def\cs{\csname utf:#1:#2#3\endcsname}\expandafter\ifx\csname utf:#1:#2#3\endcsname\relax\nosuchch@r{#1#2#3}\else\csname utf:#1:#2#3\endcsname\fi}
+
+\def^^c2#1{\d@fcsi{C2}#1}
+\def^^c3#1{\d@fcsi{C3}#1}
+\def^^c4#1{\d@fcsi{C4}#1}
+\def^^c5#1{\d@fcsi{C5}#1}
+\def^^e1#1#2{\d@fcsii{E1}#1#2}
+\def^^e3#1#2{\d@fcsii{E3}#1#2}
+
+\newutfsyn C3:^^80{\`A} % À LATIN CAPITAL LETTER A WITH GRAVE
+\newutfsyn C3:^^81{\'A} % Á LATIN CAPITAL LETTER A WITH ACUTE
+\newutfsyn C3:^^82{\^A} % Â LATIN CAPITAL LETTER A WITH CIRCUMFLEX
+\newutfsyn C3:^^83{\~A} % Ã LATIN CAPITAL LETTER A WITH TILDE
+\newutfsyn C3:^^84{\"A} % Ä LATIN CAPITAL LETTER A WITH DIAERESIS
+\newutfsyn C3:^^85{\°A} % Å LATIN CAPITAL LETTER A WITH RING ABOVE
+\newutfsyn C3:^^86{\AE} % Æ LATIN CAPITAL LETTER AE
+\newutfsyn C3:^^87{\c C}% Ç LATIN CAPITAL LETTER C WITH CEDILLA
+\newutfsyn C3:^^88{\`E} % È LATIN CAPITAL LETTER E WITH GRAVE
+\newutfsyn C3:^^89{\'E} % É LATIN CAPITAL LETTER E WITH ACUTE
+\newutfsyn C3:^^8a{\^E} % Ê LATIN CAPITAL LETTER E WITH CIRCUMFLEX
+\newutfsyn C3:^^8b{\"E} % Ë LATIN CAPITAL LETTER E WITH DIAERESIS
+\newutfsyn C3:^^8c{\`I} % Ì LATIN CAPITAL LETTER I WITH GRAVE
+\newutfsyn C3:^^8d{\'I} % Í LATIN CAPITAL LETTER I WITH ACUTE
+\newutfsyn C3:^^8e{\^I} % Î LATIN CAPITAL LETTER I WITH CIRCUMFLEX
+\newutfsyn C3:^^8f{\"I} % Ï LATIN CAPITAL LETTER I WITH DIAERESIS
+\newutfsyn C3:^^91{\~N} % Ñ LATIN CAPITAL LETTER N WITH TILDE
+\newutfsyn C3:^^92{\`O} % Ò LATIN CAPITAL LETTER O WITH GRAVE
+\newutfsyn C3:^^93{\'O} % Ó LATIN CAPITAL LETTER O WITH ACUTE
+\newutfsyn C3:^^94{\^O} % Ô LATIN CAPITAL LETTER O WITH CIRCUMFLEX
+\newutfsyn C3:^^95{\~O} % Õ LATIN CAPITAL LETTER O WITH TILDE
+\newutfsyn C3:^^96{\"O} % Ö LATIN CAPITAL LETTER O WITH DIAERESIS
+\newutfsyn C3:^^98{\O}  % Ø LATIN CAPITAL LETTER O WITH STROKE
+\newutfsyn C3:^^99{\`U} % Ù LATIN CAPITAL LETTER U WITH GRAVE
+\newutfsyn C3:^^9a{\'U} % Ú LATIN CAPITAL LETTER U WITH ACUTE
+\newutfsyn C3:^^9b{\^U} % Û LATIN CAPITAL LETTER U WITH CIRCUMFLEX
+\newutfsyn C3:^^9c{\"U} % Ü LATIN CAPITAL LETTER U WITH DIAERESIS
+\newutfsyn C3:^^9d{\'Y} % Ý LATIN CAPITAL LETTER Y WITH ACUTE
+\newutfsyn C3:^^9f{\ss} % ß LATIN SMALL   LETTER SHARP S
+\newutfsyn C3:^^a0{\`a} % à LATIN SMALL   LETTER A WITH GRAVE
+\newutfsyn C3:^^a1{\'a} % á LATIN SMALL   LETTER A WITH ACUTE
+\newutfsyn C3:^^a2{\^a} % â LATIN SMALL   LETTER A WITH CIRCUMFLEX
+\newutfsyn C3:^^a3{\~a} % ã LATIN SMALL   LETTER A WITH TILDE
+\newutfsyn C3:^^a4{\"a} % ä LATIN SMALL   LETTER A WITH DIAERESIS
+\newutfsyn C3:^^a5{\°a} % å LATIN SMALL   LETTER A WITH RING ABOVE
+\newutfsyn C3:^^a6{\ae} % æ LATIN SMALL   LETTER AE
+\newutfsyn C3:^^a7{\c c}% ç LATIN SMALL   LETTER C WITH CEDILLA
+\newutfsyn C3:^^a8{\`e} % è LATIN SMALL   LETTER E WITH GRAVE
+\newutfsyn C3:^^a9{\'e} % é LATIN SMALL   LETTER E WITH ACUTE
+\newutfsyn C3:^^aa{\^e} % ê LATIN SMALL   LETTER E WITH CIRCUMFLEX
+\newutfsyn C3:^^ab{\"e} % ë LATIN SMALL   LETTER E WITH DIAERESIS
+\newutfsyn C3:^^ac{\`i} % ì LATIN SMALL   LETTER I WITH GRAVE
+\newutfsyn C3:^^ad{\'i} % í LATIN SMALL   LETTER I WITH ACUTE
+\newutfsyn C3:^^ae{\^i} % î LATIN SMALL   LETTER I WITH CIRCUMFLEX
+\newutfsyn C3:^^af{\"i} % ï LATIN SMALL   LETTER I WITH DIAERESIS
+\newutfsyn C3:^^b1{\~n} % ñ LATIN SMALL   LETTER N WITH TILDE
+\newutfsyn C3:^^b2{\`o} % ò LATIN SMALL   LETTER O WITH GRAVE
+\newutfsyn C3:^^b3{\'o} % ó LATIN SMALL   LETTER O WITH ACUTE
+\newutfsyn C3:^^b4{\^o} % ô LATIN SMALL   LETTER O WITH CIRCUMFLEX
+\newutfsyn C3:^^b5{\~o} % õ LATIN SMALL   LETTER O WITH TILDE
+\newutfsyn C3:^^b6{\"o} % ö LATIN SMALL   LETTER O WITH DIAERESIS
+\newutfsyn C3:^^b8{\o}  % ø LATIN SMALL   LETTER O WITH STROKE
+\newutfsyn C3:^^b9{\`u} % ù LATIN SMALL   LETTER U WITH GRAVE
+\newutfsyn C3:^^ba{\'u} % ú LATIN SMALL   LETTER U WITH ACUTE
+\newutfsyn C3:^^bb{\^u} % û LATIN SMALL   LETTER U WITH CIRCUMFLEX
+\newutfsyn C3:^^bc{\"u} % ü LATIN SMALL   LETTER U WITH DIAERESIS
+\newutfsyn C3:^^bd{\'y} % ý LATIN SMALL   LETTER Y WITH ACUTE
+\newutfsyn C3:^^bf{\"y} % ÿ LATIN SMALL   LETTER Y WITH DIAERESIS
+
+%% END UTF-8 to OT1
+\ifnum\encoding=1 \endinput\fi
+%% UTF-8 to T1
+
+\def\`#1{{\accent"00 #1}}%/grave           `
+\def\'#1{{\accent"01 #1}}%/acute           ´
+\def\^#1{{\accent"02 #1}}%/circumflex      ˆ
+\def\~#1{{\accent"03 #1}}%/tilde           ˜
+\def\"#1{{\accent"04 #1}}%/dieresis        ¨
+\def\H#1{{\accent"05 #1}}%/hungarumlaut    ˝
+\def\°#1{{\accent"06 #1}}%/ring            ˚
+\def\v#1{{\accent"07 #1}}%/caron           ˇ
+\def\u#1{{\accent"08 #1}}%/breve           ˘
+\def\=#1{{\accent"09 #1}}%/macron          ¯
+\def\.#1{{\accent"0A #1}}%/dotaccent       ˙
+\def\c#1{{\setbox\z@\hbox{#1}\ifdim\ht\z@=1ex\accent"0B #1%/cedilla         ¸
+  \else\ooalign{\unhbox\z@\crcr\hidewidth\char24\hidewidth}\fi}}
+\def\k#1{{\ooalign{\null#1\crcr\hidewidth\char"0C\hidewidth}}}%/ogonek          ˛
+\def\t#1{{\edef\next{\the\font}\the\textfont1\accent"04\next#1}}
+\def\d#1{{\o@lign{\relax#1\crcr\hidewidth\sh@ft{-1ex}.\hidewidth}}}
+\def\b#1{{\o@lign{\relax#1\crcr\hidewidth\sh@ft{-3ex}%
+    \vbox to.2ex{\hbox{\char22}\vss}\hidewidth}}}
+
+\chardef\i="19
+\chardef\j="1A
+\chardef\L="8A
+\chardef\NG="8D
+\chardef\IJ="9C
+\chardef\dj="9E
+\chardef\l="AA
+\chardef\ij="BC
+\chardef\AE="C6
+\chardef\DH="D0
+\chardef\DJ="D0
+\chardef\OE="D7
+\chardef\O="D8
+\chardef\TH="DE
+\chardef\SS="DF
+\chardef\ae="E6
+\chardef\dh="F0
+\chardef\oe="F7
+\chardef\o="F8
+\chardef\ss="FF
+
+\chardef\textexclamdown="BD % ¡
+\chardef\textquestiondown="BE % ¿
+\chardef\textgreater="3E % >
+\chardef\textless="3C % <
+\chardef\textsection="9F
+\chardef\textsterling="BF
+\chardef\textquotedblleft="10 % ``
+\chardef\textquotedblright="11 % ''
+\chardef\quotedsinglbase="0D% /quotesinglbase  ‚
+\chardef\guilsinglleft="0E% /guilsinglleft   ‹
+\chardef\guilsinglright="0F% /guilsinglright  ›
+\chardef\quotedblbase="12% /quotedblbase    „
+\chardef\guillemotleft="13% /guillemotleft   «
+\chardef\guillemotright="14% /guillemotright  »
+\chardef\textquotedbl="22 % "
+\chardef\perthousandzero="18
+
+% #1 char code #2 single version #3 double version
+\def\reassignquotnewlig#1#2#3{\catcode#1=13 \begingroup\lccode`\~=#1 \lowercase{\endgroup\def~}##1{\let\c=##1\ifnum`##1=#1#3\else#2##1\fi}}
+\def\reassignquot#1#2{\catcode#1=13 \begingroup\lccode`\~=#1 \lowercase{\endgroup\def~}{#2}}
+\def\germanquot{\reassignquotnewlig{`\`}{\quotedsinglbase}{\quotedblbase}\reassignquot{`\'}{\textquoteleft}}
+\def\guillemetquot{\reassignquotnewlig{`\`}{\guilsinglleft}{\guillemotleft}\reassignquotnewlig{`\'}{\guilsinglright}{\guillemotright}} % not quite right: `test' foo -> <test>foo
+
+% parsing
+
+\newutfenc C2:^^a1>BD% /exclamdown      ¡
+\newutfenc C2:^^a3>BF% /sterling        £
+\newutfenc C2:^^a7>9F% /section         §
+\newutfenc C2:^^bf>BE% /questiondown    ¿
+\newutfenc C3:^^80>C0% /Agrave          À
+\newutfenc C3:^^81>C1% /Aacute          Á
+\newutfenc C3:^^82>C2% /Acircumflex     Â
+\newutfenc C3:^^83>C3% /Atilde          Ã
+\newutfenc C3:^^84>C4% /Adieresis       Ä
+\newutfenc C3:^^85>C5% /Aring           Å
+\newutfenc C3:^^86>C6% /AE              Æ
+\newutfenc C3:^^87>C7% /Ccedilla        Ç
+\newutfenc C3:^^88>C8% /Egrave          È
+\newutfenc C3:^^89>C9% /Eacute          É
+\newutfenc C3:^^8a>CA% /Ecircumflex     Ê
+\newutfenc C3:^^8b>CB% /Edieresis       Ë
+\newutfenc C3:^^8c>CC% /Igrave          Ì
+\newutfenc C3:^^8d>CD% /Iacute          Í
+\newutfenc C3:^^8e>CE% /Icircumflex     Î
+\newutfenc C3:^^8f>CF% /Idieresis       Ï
+\newutfenc C3:^^90>D0% /Eth             Ð
+\newutfenc C3:^^91>D1% /Ntilde          Ñ
+\newutfenc C3:^^92>D2% /Ograve          Ò
+\newutfenc C3:^^93>D3% /Oacute          Ó
+\newutfenc C3:^^94>D4% /Ocircumflex     Ô
+\newutfenc C3:^^95>D5% /Otilde          Õ
+\newutfenc C3:^^96>D6% /Odieresis       Ö
+\newutfenc C3:^^98>D8% /Oslash          Ø
+\newutfenc C3:^^99>D9% /Ugrave          Ù
+\newutfenc C3:^^9a>DA% /Uacute          Ú
+\newutfenc C3:^^9b>DB% /Ucircumflex     Û
+\newutfenc C3:^^9c>DC% /Udieresis       Ü
+\newutfenc C3:^^9d>DD% /Yacute          Ý
+\newutfenc C3:^^9e>DE% /Thorn           Þ
+\newutfenc C3:^^9f>FF% /germandbls      ß
+\newutfenc C3:^^a0>E0% /agrave          à
+\newutfenc C3:^^a1>E1% /aacute          á
+\newutfenc C3:^^a2>E2% /acircumflex     â
+\newutfenc C3:^^a3>E3% /atilde          ã
+\newutfenc C3:^^a4>E4% /adieresis       ä
+\newutfenc C3:^^a5>E5% /aring           å
+\newutfenc C3:^^a6>E6% /ae              æ
+\newutfenc C3:^^a7>E7% /ccedilla        ç
+\newutfenc C3:^^a8>E8% /egrave          è
+\newutfenc C3:^^a9>E9% /eacute          é
+\newutfenc C3:^^aa>EA% /ecircumflex     ê
+\newutfenc C3:^^ab>EB% /edieresis       ë
+\newutfenc C3:^^ac>EC% /igrave          ì
+\newutfenc C3:^^ad>ED% /iacute          í
+\newutfenc C3:^^ae>EE% /icircumflex     î
+\newutfenc C3:^^af>EF% /idieresis       ï
+\newutfenc C3:^^b0>F0% /eth             ð
+\newutfenc C3:^^b1>F1% /ntilde          ñ
+\newutfenc C3:^^b2>F2% /ograve          ò
+\newutfenc C3:^^b3>F3% /oacute          ó
+\newutfenc C3:^^b4>F4% /ocircumflex     ô
+\newutfenc C3:^^b5>F5% /otilde          õ
+\newutfenc C3:^^b6>F6% /odieresis       ö
+\newutfenc C3:^^b8>F8% /oslash          ø
+\newutfenc C3:^^b9>F9% /ugrave          ù
+\newutfenc C3:^^ba>FA% /uacute          ú
+\newutfenc C3:^^bb>FB% /ucircumflex     û
+\newutfenc C3:^^bc>FC% /udieresis       ü
+\newutfenc C3:^^bd>FD% /yacute          ý
+\newutfenc C3:^^be>FE% /thorn           þ
+\newutfenc C3:^^bf>B8% /ydieresis       ÿ
+\newutfenc C4:^^82>80% /Abreve          Ă
+\newutfenc C4:^^83>A0% /abreve          ă
+\newutfenc C4:^^84>81% /Aogonek         Ą
+\newutfenc C4:^^85>A1% /aogonek         ą
+\newutfenc C4:^^86>82% /Cacute          Ć
+\newutfenc C4:^^87>A2% /cacute          ć
+\newutfenc C4:^^8c>83% /Ccaron          Č
+\newutfenc C4:^^8d>A3% /ccaron          č
+\newutfenc C4:^^8e>84% /Dcaron          Ď
+\newutfenc C4:^^8f>A4% /dcaron          ď
+\newutfenc C4:^^91>9E% /dcroat          đ
+\newutfenc C4:^^98>86% /Eogonek         Ę
+\newutfenc C4:^^99>A6% /eogonek         ę
+\newutfenc C4:^^9a>85% /Ecaron          Ě
+\newutfenc C4:^^9b>A5% /ecaron          ě
+\newutfenc C4:^^9e>87% /Gbreve          Ğ
+\newutfenc C4:^^9f>A7% /gbreve          ğ
+\newutfenc C4:^^b0>9D% /Idotaccent      İ
+\newutfenc C4:^^b2>9C% /IJ              Ĳ
+\newutfenc C4:^^b3>BC% /ij              ĳ
+\newutfenc C4:^^b9>88% /Lacute          Ĺ
+\newutfenc C4:^^ba>A8% /lacute          ĺ
+\newutfenc C4:^^bd>89% /Lcaron          Ľ
+\newutfenc C4:^^be>A9% /lcaron          ľ
+\newutfenc C5:^^81>8A% /Lslash          Ł
+\newutfenc C5:^^82>AA% /lslash          ł
+\newutfenc C5:^^83>8B% /Nacute          Ń
+\newutfenc C5:^^84>AB% /nacute          ń
+\newutfenc C5:^^87>8C% /Ncaron          Ň
+\newutfenc C5:^^88>AC% /ncaron          ň
+\newutfenc C5:^^8a>8D% /Eng             Ŋ
+\newutfenc C5:^^8b>AD% /eng             ŋ
+\newutfenc C5:^^90>8E% /Ohungarumlaut   Ő
+\newutfenc C5:^^91>AE% /ohungarumlaut   ő
+\newutfenc C5:^^92>D7% /OE              Œ
+\newutfenc C5:^^93>F7% /oe              œ
+\newutfenc C5:^^94>8F% /Racute          Ŕ
+\newutfenc C5:^^95>AF% /racute          ŕ
+\newutfenc C5:^^98>90% /Rcaron          Ř
+\newutfenc C5:^^99>B0% /rcaron          ř
+\newutfenc C5:^^9a>91% /Sacute          Ś
+\newutfenc C5:^^9b>B1% /sacute          ś
+\newutfenc C5:^^9e>93% /Scedilla        Ş
+\newutfenc C5:^^9f>B3% /scedilla        ş
+\newutfenc C5:^^a0>92% /Scaron          Š
+\newutfenc C5:^^a1>B2% /scaron          š
+\newutfenc C5:^^a2>95% /Tcedilla        Ţ
+\newutfenc C5:^^a3>B5% /tcedilla        ţ
+\newutfenc C5:^^a4>94% /Tcaron          Ť
+\newutfenc C5:^^a5>B4% /tcaron          ť
+\newutfenc C5:^^ae>97% /Uring           Ů
+\newutfenc C5:^^af>B7% /uring           ů
+\newutfenc C5:^^b0>96% /Uhungarumlaut   Ű
+\newutfenc C5:^^b1>B6% /uhungarumlaut   ű
+\newutfenc C5:^^b8>98% /Ydieresis       Ÿ
+\newutfenc C5:^^b9>99% /Zacute          Ź
+\newutfenc C5:^^ba>B9% /zacute          ź
+\newutfenc C5:^^bb>9B% /Zdotaccent      Ż
+\newutfenc C5:^^bc>BB% /zdotaccent      ż
+\newutfenc C5:^^bd>9A% /Zcaron          Ž
+\newutfenc C5:^^be>BA% /zcaron          ž
+\newutfenc C8:^^99>B3% /scommaaccent    ș
+\newutfenc C8:^^9b>B5% /tcommaaccent    ț
+\newutfenc C8:^^b7>1A% /dotlessj        ȷ
+
+\newutfenctwo E1:^^ba^^9e>DF% /Germandbls      ẞ
+
+% set \lccodes and \uccodes
+
+\lccode"19="19 % dotless i and j capitalize to I and J
+\lccode"1A="1A
+\uccode"19="49
+\uccode"1A="4A
+
+\newcount\t@mp % current char
+\newcount\l@ter
+\def\ucr@w#1{% make uppercase row
+  \loop\ifnum\t@mp<#1%
+  \l@ter=\t@mp
+  \advance\l@ter by "20%
+  \lccode\t@mp=\l@ter
+  \uccode\t@mp=\t@mp
+  \advance\t@mp by 1%
+\repeat}
+
+\def\lcr@w#1{% make lowercase row
+  \loop\ifnum\t@mp<#1%
+  \l@ter=\t@mp
+  \advance\l@ter by -"20%
+  \uccode\t@mp=\l@ter
+  \lccode\t@mp=\t@mp
+  \advance\t@mp by 1%
+\repeat}
+
+\t@mp="80%
+\ucr@w{"90}
+\ucr@w{"A0}
+\lcr@w{"B0}
+\lcr@w{"C0}
+\ucr@w{"D0}
+\ucr@w{"E0}
+\lcr@w{"F0}
+\lcr@w{"100}
+
+% some corrections
+\lccode"9D="69 % dotted I
+\lccode"9E="9E % crossed d
+\uccode"9E="D0
+\lccode"9F="9F % symbols
+\uccode"BD="BD
+\uccode"BE="BE
+\uccode"BF="BF
+
+\unrootme

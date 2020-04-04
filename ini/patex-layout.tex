@@ -1,0 +1,39 @@
+\message{Basic layout}
+\newif\ifdvi\dvifalse
+\expandafter\expandafter
+\expandafter\ifnopdf
+\expandafter\ifnoxe
+\ifnolua\dvitrue\fi\fi\fi % dvi mode if neither pdfTeX nor XeTeX nor LuaTeX (error prone)
+
+\def\usepaper#1{\csname usepaper:#1\endcsname}
+
+\newdimen\hs   % text width
+\newdimen\vs   % text length
+\newdimen\hoff % text offset h
+\newdimen\voff % text offset v
+
+\def\newpageformat#1#2#3#4#5#6#7{%
+  \expandafter\def\csname usepaper:#1\endcsname{%
+    \ifdvi%
+      \special{papersize=#2,#3}%
+    \else%
+      \pdfpagewidth=#2
+      \pdfpageheight=#3
+    \fi%
+    \hs=#2 \advance\hs by -#4 \advance\hs by -#6
+    \vs=#3 \advance\vs by -#5 \advance\vs by -#7
+    \hoff=#4 \advance\hoff by -1in
+    \voff=#5 \advance\voff by -1in
+    \global\hoffset=\hoff
+    \global\voffset=\voff
+    \global\hsize=\hs
+    \global\vsize=\vs
+  }
+}
+
+\newpageformat{usletter}{8.5 true in}{11 true in}{1 true in}{1 true in}{1 true in}{1.1 true in}
+\newpageformat{a4}{21 true cm}{29.7 true cm}{2.5 true cm}{2.5 true cm}{2.5 true cm}{3 true cm}
+
+\def\setlayout#1#2#3#4#5#6{\newpageformat{custom}{#1}{#2}{#3}{#4}{#5}{#6}\usepaper{custom}}
+\def\setmargins#1#2#3#4{\setlayout{8.5in}{11in}{#1}{#2}{#3}{#4}}
+\def\setallmargins#1{\setmargins{#1}{#1}{#1}{#1}}

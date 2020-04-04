@@ -1,0 +1,74 @@
+% basic formatting macro collection
+\message{Formatting macros}
+\rootme
+
+\def\hidewidth{\hskip\hideskip} % for alignment entries that can stick out
+\def\ialign{\everycr{}\tabskip\z@skip\halign} % initialized \halign
+\def\oalign#1{\leavevmode\vtop{\baselineskip\z@skip \lineskip.25ex%
+  \ialign{##\crcr#1\crcr}}} \def\o@lign{\lineskiplimit\z@ \oalign}
+\def\ooalign{\lineskiplimit-\maxdimen \oalign} % chars over each other
+{\catcode`p=12 \catcode`t=12 \gdef\\#1pt{#1}} \let\getf@ctor=\\
+
+\def\sh@ft#1{\dimen@#1\kern\expandafter\getf@ctor\the\fontdimen1\font
+  \dimen@} % kern by #1 times the current slant
+
+%% general commands
+\def\leavevmode{\unhbox\voidb@x} % enter horizontal mode
+\def\draft{\overfullrule=5pt}
+
+%% breaking
+\def\nobreak{\penalty10000}
+\def\break{\penalty-10000}
+
+%% white space
+\def\enspace{\kern.5em}
+\def\emspace{\kern1em}
+
+
+% interword
+\def\frenchspacing{\sfcode`\.\@m \sfcode`\?\@m \sfcode`\!\@m
+  \sfcode`\:\@m \sfcode`\;\@m \sfcode`\,\@m}
+\def\nonfrenchspacing{\sfcode`\.3000\sfcode`\?3000\sfcode`\!3000%
+  \sfcode`\:2000\sfcode`\;1500\sfcode`\,1250 }
+
+
+% interline
+\def\nointerlineskip{\prevdepth=-1000pt}
+\def\interlineskipoff{\baselineskip=-1000pt \lineskip=0pt \lineskiplimit=\maxdimen}
+\def\continuousinterlineskip{\lineskiplimit=-\maxdimen}
+\def\linespacefactor{\afterassignment\@linespacefactor\count@}
+\def\@linespacefactor{\multiply\baselineskip by\count@ \multiply\lineskip by\count@ \multiply\lineskiplimit by\count@}
+% varying as a continuous function
+% stretchy baselines for one page documents
+
+% paragraphs
+\def\parskipglue{\afterassignment\@parskipglue\skip@}
+\def\@parskipglue{\nobreak\hskip\skip@\relax}
+\def\indentoff{\everypar{{\setbox0=\lastbox}}}
+
+\def\noindentstyle{\indentoff\parskip=\baselineskip}
+
+\def\newline{\hfill\break}
+
+\def\hangrightof#1{\def\obj{#1}\setbox0 \hbox{\obj} \hangindent=\wd0 \advance\hangindent by1em \noindent \obj \hskip0.9em \ignorespaces}
+
+\gdef\multipar{\par\leavevmode}% a \par where multiple ones aren't ignored
+
+% note: the spacing of the definitions in the following group is significant
+{\catcode`\ =13 \catcode`\^^M=13
+\gdef\obeyspaces{\catcode`\ =13\let =\space}% insert a space for every space in the input
+\gdef\obeylines{\catcode`^^M=13\let^^M=\multipar}% insert \par for every line in the input
+\global\let^^M=\par%
+}
+
+% boxes
+\def\llap#1{\hbox to\z@{\hss#1}}
+\def\rlap#1{\hbox to\z@{#1\hss}}
+
+% indenting and items
+\def\item#1{\par\leavevmode\llap{#1\enspace}\ignorespaces}
+\unrootme
+
+%% math
+\def\newop#1{\csdef{#1}{\mathop{\rm#1}\nolimits}}
+\def\newlimop#1{\csdef{#1}{\mathop{\rm#1}\limits}}

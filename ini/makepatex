@@ -1,0 +1,11 @@
+#!/bin/bash
+tex -ini -jobname=patex -progname=patex patex.ini
+mv patex.fmt ~/texmf/web2c/tex/patex.fmt
+pdftex -ini -jobname=epatex -progname=epatex -etex patex.ini
+mv epatex.fmt ~/texmf/web2c/pdftex/epatex.fmt
+pdftex -ini -jobname=pdfpatex -progname=pdfpatex -etex patex.ini
+mv pdfpatex.fmt ~/texmf/web2c/pdftex/pdfpatex.fmt
+xetex -ini -jobname=pdfxepatex -progname=pdfxepatex -etex patex.ini
+mv pdfxepatex.fmt ~/texmf/web2c/xetex/xepatex.fmt
+luatex -ini -jobname=pdfluapatex -progname=pdfluapatex -etex patex.ini
+mv pdfluapatex.fmt ~/texmf/web2c/luatex/luapatex.fmt

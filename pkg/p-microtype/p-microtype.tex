@@ -1,0 +1,174 @@
+%% interface for pdfTeX's microtypography capabilities, like LaTeX's microtype, but a lot simpler
+% requires pdfTeX
+% font expansion - can be influenced per-character by \efcode
+\def\expandfont plus #1 minus #2.{%
+  \pdffontexpand\the\font #1 #2 5 autoexpand
+  \pdfadjustspacing=2% 1: no influence on TeX's line breaking algorithm
+}
+\def\autoexpandfont{\expandfont plus 20 minus 20.}
+\def\noexpandfont{\pdfadjustspacing=0}
+% char protrusion - \rpcode
+\def\protrudechars{\pdfprotrudechars=2} % 1: no influence on TeX's line breaking algorithm
+\def\noprotrudechars{\pdfprotrudechars=0}
+% both
+\def\microtyping{\autoexpandfont\protrudechars}
+\def\nomicrotyping{\noprotrudechars\noexpandfont}
+% letter spacing
+\def\spaceout#1.{\letterspacefont\lsfont\the\font #1 \lsfont}
+% no ligatures
+\def\noligatures{\pdfnoligatures\the\font}
+% interword space
+\def\interwordglue{\pdfadjustinterwordglue=1}
+\def\nointerwordglue{\pdfadjustinterwordglue=0}
+% additional kerning
+\def\frenchkerning{\pdfprependkern=1 \pdfappendkern=1}
+\def\nofrenchkerning{\pdfprependkern=0 \pdfappendkern=0}
+
+% enable font expansion and char protrusion by default
+%\microtyping
+
+% defaults, from microtype.cfg
+% font expansion
+\efcode\the\font`A=500
+\efcode\the\font`B=700
+\efcode\the\font`C=700
+\efcode\the\font`D=500
+\efcode\the\font`E=700
+\efcode\the\font`F=700
+\efcode\the\font`G=500
+\efcode\the\font`H=700
+\efcode\the\font`K=700
+\efcode\the\font`M=700
+\efcode\the\font`N=700
+\efcode\the\font`O=500
+\efcode\the\font`P=700
+\efcode\the\font`Q=500
+\efcode\the\font`R=700
+\efcode\the\font`S=700
+\efcode\the\font`U=700
+\efcode\the\font`W=700
+\efcode\the\font`Z=700
+\efcode\the\font`2=700
+\efcode\the\font`3=700
+\efcode\the\font`6=700
+\efcode\the\font`8=700
+\efcode\the\font`9=700
+\efcode\the\font`a=700
+\efcode\the\font`b=700
+\efcode\the\font`c=700
+\efcode\the\font`d=700
+\efcode\the\font`e=700
+\efcode\the\font`g=700
+\efcode\the\font`h=700
+\efcode\the\font`k=700
+\efcode\the\font`m=700
+\efcode\the\font`n=700
+\efcode\the\font`o=700
+\efcode\the\font`p=700
+\efcode\the\font`q=700
+\efcode\the\font`s=700
+\efcode\the\font`u=700
+\efcode\the\font`w=700
+\efcode\the\font`z=700
+
+% char protrusion
+\def\setpcode#1#2#3{{%
+  \setbox0=\hbox{\char#2}
+  \def\codeinem{\the\numexpr #3 * \wd0 / \fontdimen6\font \relax} % convert char width dependent factor to em-width (used by pdfTeX)
+  \global\csname#1pcode\endcsname\the\font#2=\codeinem%
+}}
+\rpcode\the\font"22=300 % '' OT1
+\rpcode\the\font"11=300 % ''  T1
+
+\setpcode l\textquoteleft{700}
+\setpcode l\textquotedblleft{500}
+\setpcode l\quotedsinglbase{700}
+\setpcode l\quotedblbase{500}
+\setpcode l{`(}{50}
+\setpcode l{`A}{50}
+\setpcode l{`J}{50}
+\setpcode l{`T}{50}
+\setpcode l{`V}{50}
+\setpcode l{`W}{50}
+\setpcode l{`X}{50}
+\setpcode l{`Y}{50}
+\setpcode l{`v}{50}
+\setpcode l{`w}{50}
+\setpcode l{`x}{50}
+\setpcode l{`y}{50}
+
+\setpcode r{`.}{700}
+\setpcode r{`-}{700}
+\setpcode r{`,}{700}
+\setpcode r\textquoteright{700}
+\setpcode r\textquotedblright{500}
+\setpcode r\textquoteleft{700}
+\setpcode r\textquotedblleft{500}
+\setpcode r{`;}{500}
+\setpcode r{`:}{500}
+\setpcode r\textendash{300}
+\setpcode r\textemdash{200}
+\setpcode r{`!}{200}
+\setpcode r{`?}{200}
+\setpcode r{`)}{50}
+\setpcode r{`A}{50}
+\setpcode r{`F}{50}
+\setpcode r{`K}{50}
+\setpcode r{`L}{50}
+\setpcode r{`T}{50}
+\setpcode r{`V}{50}
+\setpcode r{`W}{50}
+\setpcode r{`X}{50}
+\setpcode r{`Y}{50}
+\setpcode r{`k}{50}
+\setpcode r{`r}{50}
+\setpcode r{`t}{50}
+\setpcode r{`v}{50}
+\setpcode r{`w}{50}
+\setpcode r{`x}{50}
+\setpcode r{`y}{50}
+
+% interword spacing
+\def\setbscode#1,#2,#3,#4,{{%
+  \def\kninem{\the\numexpr #2 * \fontdimen2\font / \fontdimen6\font \relax} % add kern
+  \def\stinem{\the\numexpr #3 * \fontdimen3\font / \fontdimen6\font \relax} % stretch
+  \def\shinem{\the\numexpr #4 * \fontdimen4\font / \fontdimen6\font \relax} % shrink
+  \knbscode\the\font#1=\kninem \stbscode\the\font#1=\kninem \shbscode\the\font#1=\kninem%
+}}
+\setbscode`\,,0,-500,500,
+\setbscode`r,0,-300,300,
+\setbscode`b,0,-200,200,
+\setbscode`d,0,-200,200,
+\setbscode`f,0,-200,200,
+\setbscode`h,0,-200,200,
+\setbscode`k,0,-200,200,
+\setbscode`l,0,-200,200,
+\setbscode`t,0,-200,200,
+\setbscode`c,0,-100,100,
+\setbscode`p,0,-100,100,
+\setbscode`v,0,-100,100,
+\setbscode`w,0,-100,100,
+\setbscode`z,0,-100,100,
+\setbscode`x,0,-100,100,
+\setbscode`y,0,-100,100,
+\setbscode`i,0, 50, -50,
+\setbscode`m,0, 50, -50,
+\setbscode`n,0, 50, -50,
+\setbscode`u,0, 50, -50,
+\setbscode`:,0,200,-200,
+\setbscode`;,0,200,-200,
+\setbscode`.,0,250,-250,
+\setbscode`!,0,250,-250,
+\setbscode`?,0,250,-250,
+
+% French additional kerning
+\def\setccode#1#2#3{{%
+  \def\codeinem{\the\numexpr #3 * \fontdimen2\font / \fontdimen6\font \relax} % convert interword space dependent factor to em-width (used by pdfTeX)
+  \global\csname kn#1ccode\endcsname\the\font#2=\codeinem%
+}}
+\setccode b{`:}{1000}
+\setccode b{`;}{500}
+\setccode b{`!}{500}
+\setccode b{`?}{500}
+\setccode b{\guillemotright}{800}
+\setccode a{\guillemotleft}{800}

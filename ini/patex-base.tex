@@ -1,0 +1,166 @@
+% This is the PaTeX format
+
+%% teaching the newborn baby
+%\catcode`\\=0 % INITEX
+\catcode`\{=1
+\catcode`\}=2
+\catcode`\$=3
+\catcode`\&=4
+%\catcode`\^^M=5 % INITEX
+\catcode`\#=6
+\catcode`\^=7
+\catcode`\_=8
+%\catcode`\^^@=9 % INITEX
+\catcode`\^^I=10 %\catcode`\ =10 % INITEX
+%\catcode`\A=11 ... \catcode`\Z=11 \catcode`\a=11 ... \catcode`\z=11 % INITEX
+%\catcode(everything else)=12 % INITEX
+\catcode`\~=13
+%\catcode`\%=14 % INITEX
+%\catcode`\^^?=15 % INITEX
+
+\message{Preloading the PaTeX format: base}
+
+\catcode`@=11
+
+%% constants
+\chardef\active=13
+\chardef\@ne=1
+\chardef\tw@=2
+\chardef\thr@@=3
+\chardef\sixt@@n=16
+\mathchardef\@cclv=255
+\mathchardef\@cclvi=256
+\mathchardef\@m=1000
+\mathchardef\@M=10000
+\mathchardef\@MM=20000
+
+\def~{\penalty\@M \ }
+%% more codes
+
+% upper- and lowercase codes, INITEX:
+% \uccode`x=`X, \uccode`X=`X,
+% \lccode`x=`x, \lccode`X=`x,
+% otherwise \lccode x=0
+
+% space factor codes
+% \sfcode x=1000 for all x, except \sfcode`X=999 % INITEX
+\sfcode`\)=0 % make parentheses invisible for the spacefactor
+\sfcode`\'=0
+\sfcode`\]=0
+
+%% register allocation
+
+% reserved (plus \box255 for \output):
+\count10=22 % latest allocated \count register
+\count11=9 % latest allocated \dimen register
+\count12=9 % latest allocated \skip register
+\count13=9 % latest allocated \muskip register
+\count14=9 % latest allocated \box register
+\count15=9 % latest allocated \toks register
+\count16=-1 % latest allocated input stream
+\count17=-1 % latest allocated output stream
+\count18=3 % latest allocated font family
+\count19=0 % latest allocated \language
+\count20=255 % latest allocated insertion (counts down)
+\count22=-1 % constant
+\countdef\insc@unt=20 % insertion counter
+\countdef\allocationnumber=21 % most recent allocation
+\countdef\m@ne=22
+\def\wlog{\immediate\write\m@ne} % write only on log file
+
+% scratch registers:
+% odd numbers < 10: global assignments only
+% even numbers < 10: local assignments only
+\countdef\count@=255
+\dimendef\dimen@=0
+\dimendef\dimen@i=1 % global
+\dimendef\dimen@ii=2
+\skipdef\skip@=0
+\toksdef\toks@=0
+
+% automatic allocation
+\def\alloc@#1#2#3#4#5{% allocate at number in count register 1#1 plus 1 and define synonym #5
+  \global\advance\count1#1by\@ne
+  \ch@ck#1#4#2% check if room
+  \allocationnumber=\count1#1%
+  \global#3#5=\allocationnumber
+  \wlog{\string#3\string#5=\string#2\the\allocationnumber}% \...def\name=\...number
+}
+\def\ch@ck#1#2#3{%
+  \ifnum\count1#1<#2% if less than lowest insert register in use
+  \else\errmessage{Could not allocate another #3}\fi%
+}
+
+\outer\def\newcount{\alloc@0\count\countdef\insc@unt}
+\outer\def\newdimen{\alloc@1\dimen\dimendef\insc@unt}
+\outer\def\newskip{\alloc@2\skip\skipdef\insc@unt}
+\outer\def\newmuskip{\alloc@3\muskip\muskipdef\@cclvi} % not allocated by insertion, thus \@cclvi
+\outer\def\newbox{\alloc@4\box\chardef\insc@unt} % no \boxdef---requires use use \box\...
+\outer\def\newtoks{\alloc@5\toks\toksdef\@cclvi}
+\outer\def\newread{\alloc@6\read\chardef\sixt@@n} % max 16 allowed
+\outer\def\newwrite{\alloc@7\write\chardef\sixt@@n}
+\outer\def\newfam{\alloc@8\fam\chardef\sixt@@n} 
+\outer\def\newlanguage{\alloc@9\language\chardef\@cclvi}
+\outer\def\newinsert#1{% allocate four registers
+  \global\advance\insc@unt by\m@ne
+  \ch@ck0\insc@unt\count
+  \ch@ck1\insc@unt\count
+  \ch@ck2\insc@unt\count
+  \ch@ck4\insc@unt\count
+  \allocationnumber=\inscount
+  \global\chardef#1=\allocationnumber
+  \wlog{\string\chardef\string#1=\string\insert\the\allocationnumber}
+}
+
+\newdimen\maxdimen \maxdimen=16383.99999pt % largest <dimen>
+\newdimen\z@ \z@=0pt
+\newskip\z@skip \z@skip=0pt plus0pt minus0pt
+\newskip\hideskip \hideskip=-1000pt plus 1fill % negative but can grow
+\newbox\voidb@x
+
+
+%% finalizations
+
+\outer\def\thx{\par\vfill\par\penalty-\@MM\end}
+
+\def\showhyphens#1{\setbox0\vbox{\parfillskip\z@skip\hsize\maxdimen\tenrm
+  \pretolerance\m@ne\tolerance\m@ne\hbadness0\showboxdepth0\ #1}}
+
+
+% the fam
+\def\TeX{T\kern-.1667em\lower.5ex\hbox{E}\kern-.125emX}
+\def\pdfTeX{pdf\TeX}
+\def\Xe{%
+  \ifnoxe
+    X\kern-.125em\lower.5ex\hbox{%
+    \setbox\z@\hbox{E}\ht\z@\z@ \dp\z@\z@
+    \pdfsave\pdfsetmatrix{-1 0 0 1}\hbox to\z@{\hss\copy\z@}\pdfrestore
+    {\setbox2=\hbox{}\wd2=\wd0 \ht2=\ht0 \dp2=\dp0 \box2}}%
+    \kern-.1667em
+  \else
+    X\kern-.125em\lower.5ex\hbox{%
+      \setbox\z@\hbox{E}%
+      \setbox2=\hbox{}\wd2=\wd0 \ht2=\ht0 \dp2=\dp0 \box2
+      \hbox to\z@{\special{pdf:btrans xscale -1}E\special{pdf:etrans}\hss}}%
+    \kern-.1667em
+  \fi
+}
+\def\XeTeX{\Xe\TeX}
+\def\LuaTeX{Lua\TeX}
+%\def\PaTeX{P\kern-.36em\lower.5ex\hbox{A}\kern-.26em\TeX}
+%\def\PaTeX{P\kern-.63em{\setbox0 \hbox{T} \lower.25ex\vbox to \ht0{\vss\hbox{\the\scriptfont0 A}}}\kern-.25em\TeX}
+\def\PaTeX{{\setbox0 \hbox{T}\setbox2 \vbox to \ht0{\vss\hbox{\the\scriptfont0 A}}\dimen0=-.5\wd2 P\kern\dimen0 \lower.25ex\box2 \advance\dimen0 by.05em\kern\dimen0\relax}\TeX}
+\def\pdfPaTeX{pdf\PaTeX}
+\def\XePaTeX{\Xe\kern.08em\PaTeX}
+\def\LuaPaTeX{Lua\PaTeX}
+\def\ConTeXt{Con\TeX t}
+\def\LaTeX{L\kern-.32em{\setbox0 \hbox{T}\vbox to\ht0{\hbox{\the\scriptfont0 A} \vss}}\kern-.15em\TeX}
+\def\pdfLaTeX{pdf\LaTeX}
+\def\XeLaTeX{\Xe\LaTeX}
+\def\LuaLaTeX{Lua\LaTeX}
+
+\catcode`@=12
+
+\newcount\encoding
+
+\message{done!}

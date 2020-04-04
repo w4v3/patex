@@ -1,0 +1,110 @@
+% font management setup
+\rootme
+\message{Basic font management}
+% simple interface to my font settings
+\gdef\usefont#1{% useable fonts are in pkg/font-change or pkg/patex-font
+  \count18=3 % reset allocated fonts
+  \input patex_font_#1
+} 
+
+%% some convenient font changing shorthands
+
+% directly change the current font to #2 using \#1. only useful for text-only fonts.
+\def\newtextfont#1:#2.{\expandafter\font\csname font#2\endcsname=#2\expandafter\def\csname#1\endcsname{\csname font#2\endcsname}}
+
+% changes math family to #2 defined by three sizes #3#4#5 using \#1. only affects math characters of type 7 (first digit in \mathcode)
+\def\newmathfont#1:#2:#3:#4:#5.{%
+  \expandafter\font\csname text#3\endcsname=#3
+  \def\argiv{#4} \def\argv{#5}
+  \ifx\argiv\empty\else\expandafter\font\csname script#4\endcsname=#4\fi
+  \ifx\argv\empty\else\expandafter\font\csname scriptscript#5\endcsname=#5\fi
+  \textfont#2=\expandafter\csname text#3\endcsname
+  \ifx\argiv\empty\else\scriptfont#2=\expandafter\csname script#4\endcsname\fi
+  \ifx\argv\empty\else\scriptscriptfont#2=\expandafter\csname scriptscript#5\endcsname\fi
+  \expandafter\def\csname#1\endcsname{\fam=#2}%
+}
+
+% allocate text and math font to #2 using \#1. affects text and math mode.
+\def\newfont#1:#2:#3:#4:#5.{%
+  \newmathfont#1:#2:#3:#4:#5.
+  \expandafter\def\csname#1\endcsname{\fam=#2\csname text#3\endcsname}%
+}
+
+\def\setskewchar#1:#2.{%
+  \skewchar\textfont#1=#2
+  \skewchar\scriptfont#1=#2
+  \skewchar\scriptscriptfont#1=#2%
+}
+
+% font rudimentary font resizing
+\newdimen\f@ntsize
+\def\loadf@ntb#1 #2 #3\relax{\f@ntsize=#3 \font\currentfont=#1 at1.2\f@ntsize\currentfont\relax}
+\def\loadf@nts#1 #2 #3\relax{\f@ntsize=#3 \font\currentfont=#1 at0.8\f@ntsize\currentfont\relax}
+\def\bigger{\expandafter\loadf@ntb\fontname\font\relax}
+\def\smaller{\expandafter\loadf@nts\fontname\font\relax}
+
+
+% I hate the defaults of Greek \var...
+\def\switchvars{
+  \let\tmpphi\varphi
+  \let\tmprho\varrho
+  \let\tmptheta\vartheta
+  \let\tmpepsilon\varepsilon
+  \let\varphi\phi
+  \let\varrho\rho
+  \let\vartheta\theta
+  \let\varepsilon\epsilon
+  \let\phi\tmpphi
+  \let\rho\tmprho
+  \let\theta\tmptheta
+  \let\epsilon\tmpepsilon
+}
+
+\newread\file
+\newcount\@i
+\newif\ifnoteof \noteoftrue
+
+\def\typesetall#1#2{%
+  \openin\file=#1%
+  \loop\ifnoteof
+  \read\file to\var%
+  \ifeof\file\noteoffalse\else%
+  {\tt\var:} \font\@f=\var \@f%
+  #2%
+  \vskip.5cm%
+  \fi\repeat%
+  \closein\file%
+}
+
+\def\glyphtable#1{{%
+  \font\@f=#1\@f
+  \@i=0
+  \global\baselineskip=1.5cm
+  {\tt #1}
+
+  \everypar{\parfillskip=0cm}
+  \loop\ifnum\@i<"100%
+  \setbox0 \hbox{\tt 0x\hex{\the\@i}}%
+  \noindent\vbox{\baselineskip=.5cm\hbox to \wd0{\hfil\char\the\@i\hfil} \box0\vfil}\hskip1em plus 2em minus 1em%
+  \advance\@i by 1%
+  \repeat%
+  \unskip
+  \@i=0
+}}
+
+\def\tableall#1{%
+  \openin\file=#1%
+  \loop\ifnoteof
+  \read\file to\var%
+  \ifeof\file\noteoffalse\else%
+  \font\@f=\var \@f%
+  \glyphtable\var%
+  \vskip.5cm%
+  \fi\repeat%
+  \closein\file%
+}
+
+% load default font
+\ifnoe\usefont{palatino}\else\usefont{palatino-t1}\fi
+
+\unrootme
